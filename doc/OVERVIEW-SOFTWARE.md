@@ -7,7 +7,7 @@
  More details in the `ble` folder [The BLE Process](ble/README.md).
 * The LED driving process: This process listen on the dbus for new problem signals and display the problem on the strips when new problems are available. 
  This part is implemented on the script `run.py`.
- To have the script running at startup a systemd service has to be started. See `scripts/run.sh` and `services/moonbard.service`.
+ To have the script running at startup a systemd service has to be started. See `scripts/run.sh` and `services/moonboard.service`.
 
 
 
