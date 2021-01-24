@@ -1,0 +1,13 @@
+BOK Notes:
+
+Needed to run ./install.sh to get the BLE daemon up and running at machine restart/via dbus. I think it was the symlink step I missed manually.
+
+
+However, this f****** up the sound, which I actually want. They disable sound due to their led driver.
+
+
+# Check moonboard BLE status
+$ systemctl status com.moonboard.service
+
+# I've disabled this with ' systemctl disable moonboard.service'
+# systemctl status moonboard.service
