@@ -18,23 +18,27 @@ from typing import Tuple, Union
 import neopixel
 import board
 
-logger = logging.getLogger('moonboard')
+logger = logging.getLogger("moonboard")
 
 C_BLACK = (0, 0, 0)
 C_BLUE = (0, 0, 200)
 C_GREEN = (200, 0, 0)
-C_RED =  (0, 200, 0)
+C_RED = (0, 200, 0)
+
 
 class Direction(enum.Enum):
     """Directions, as per pygame screen coordinates"""
+
     RIGHT = (1, 0)
     LEFT = (-1, 0)
     UP = (0, -1)
     DOWN = (0, 1)
 
+
 # Size of the Moonboard
 N_ROWS = 18
 N_COLUMNS = 11
+
 
 class Layout:
     """
@@ -43,6 +47,7 @@ class Layout:
     This can be used to convert from hold name, e.g. 'C12' to LED number
     or from hold name to coordinate, start at 0,0 in the top-left of the grid
     """
+
     def __init__(self, start_hold: str, direction: Direction):
         """
         Generate a layout for LED string starting from `start_hold` and
@@ -56,7 +61,7 @@ class Layout:
         x, y = self.hold_to_coordinate(start_hold)
         i = 0
         while i < n_leds:
-            self.grid[x ,y] = i
+            self.grid[x, y] = i
             i += 1
             x += direction.value[0]
             y += direction.value[1]
@@ -68,10 +73,10 @@ class Layout:
                 else:
                     direction = Direction.LEFT
                     x = N_COLUMNS - 1
-                if y == 0  or self.grid[x, y-1] != -1:
+                if y == 0 or self.grid[x, y - 1] != -1:
                     y += 1
                 else:
-                    y -= 1        
+                    y -= 1
             elif y < 0 or y >= N_ROWS:
                 if y < 0:
                     direction = Direction.DOWN
@@ -79,7 +84,7 @@ class Layout:
                 else:
                     direction = Direction.UP
                     y = N_ROWS - 1
-                if x == 0  or self.grid[x-1, y] != -1:
+                if x == 0 or self.grid[x - 1, y] != -1:
                     x += 1
                 else:
                     x -= 1
@@ -89,19 +94,19 @@ class Layout:
         """
         Convert a `hold` name to a screen coordinate which starts
         at (0,0) in the top-left corner and is listed (x, y) with `x`
-        being the horizontal axis. 
-        
+        being the horizontal axis.
+
         For example, A18 -> (0,0)
                      B16 -> (1,2)
         """
-        assert len(hold) in (2,3)
-        x = ord(hold[0])-ord('A')
+        assert len(hold) in (2, 3)
+        x = ord(hold[0]) - ord("A")
         y = N_ROWS - int(hold[1:])
         assert 0 <= x < N_COLUMNS
         assert 0 <= y < N_ROWS
-        return (x,y)
+        return (x, y)
 
-    def coordinate_to_pixel(self, x: int, y:int) -> int:
+    def coordinate_to_pixel(self, x: int, y: int) -> int:
         """
         Convert a screen coordinate into a LED pixel according
         to the layout.
@@ -127,22 +132,31 @@ class DisplayGrid:
         # NOTE: unusually I've only got 198 pixels instead of a round 200
         self.n_pixels = 198
         # My LED layout starts bottom-right and zigzags up/down from there
-        self.layout = Layout('K1', Direction.UP)
-        
+        self.layout = Layout("K1", Direction.UP)
+
         # Grid is in coordinates (0,0) being top-left, with (x,y) as the indexing
         self.grid = np.ndarray((N_COLUMNS, N_ROWS), dtype=object)
         self.grid.fill(C_BLACK)
         # Pixels, with indexing looked up via 'self.lookup'
         self.pixels = neopixel.NeoPixel(board.D18, self.n_pixels, auto_write=False)
 
-    def set(self, *, x: int=None, y: int=None, hold: str=None, colour: Tuple[int, int, int]):
+    def set(
+        self,
+        *,
+        x: int = None,
+        y: int = None,
+        hold: str = None,
+        colour: Tuple[int, int, int]
+    ):
         """
         Set pixel at `x`,`y` or `hold` to `colour`
         """
-        assert (x is None and y is None and hold is not None) or (x is not None and y is not None and hold is None), 'specify either x,y or hold'
+        assert (x is None and y is None and hold is not None) or (
+            x is not None and y is not None and hold is None
+        ), "specify either x,y or hold"
         if hold is not None:
-            x, y = self.layout.hold_to_coordinate(hold)   
-        self.grid[x,y] = colour
+            x, y = self.layout.hold_to_coordinate(hold)
+        self.grid[x, y] = colour
 
     def show(self):
         for x in range(self.grid.shape[0]):
@@ -151,10 +165,10 @@ class DisplayGrid:
                 i = self.layout.coordinate_to_pixel(x, y)
                 self.pixels[i] = colour
         self.pixels.show()
-    
+
     def clear(self):
         self.grid.fill(C_BLACK)
-    
+
 
 class App:
     def __init__(self, logger):
@@ -166,15 +180,15 @@ class App:
         self.logger.debug("new_problem: ", json.dumps(holds_string))
         print(holds_string)
         self.display.clear()
-        for hold in holds['START']:
+        for hold in holds["START"]:
             self.display.set(hold=hold, colour=C_GREEN)
-        for hold in holds['MOVES']:
+        for hold in holds["MOVES"]:
             self.display.set(hold=hold, colour=C_BLUE)
-        for hold in holds['TOP']:
-            self.display.set(hold=hold, colour=C_RED)   
+        for hold in holds["TOP"]:
+            self.display.set(hold=hold, colour=C_RED)
         self.display.show()
 
-        
+
 def main():
 
     parser = argparse.ArgumentParser(description="")
@@ -190,7 +204,6 @@ def main():
 
     # Create the app
     app = App(logger)
-
 
     # connect to dbus signal new problem
     dbml = DBusGMainLoop(set_as_default=True)
